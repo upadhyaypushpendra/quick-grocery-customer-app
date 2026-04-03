@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useLogin, useVerifyOtp, useResendOtp } from '../../hooks/useAuth';
+import { Pin } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
 import toast from 'react-hot-toast';
 
@@ -108,11 +109,12 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-brand-50 to-brand-100">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-brand-50 to-brand-100">
+      <img src="/AppLogoFull.png" alt="QuickGrocery" className="h-20 w-auto mx-auto opacity-80 my-8" />
       <div className="w-full max-w-md bg-gray-800 rounded-lg shadow-lg p-8">
         {/* Header */}
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-brand-700 mb-2">🛒 Login</h1>
+          <h1 className="text-3xl font-bold text-brand-700 mb-2">Login</h1>
           <p className="text-brand-600">
             {step === 'identifier' ? 'Enter your  phone' : 'Enter the OTP sent to you'}
           </p>
@@ -156,7 +158,7 @@ export default function LoginPage() {
             {displayOtp && (
               <div className="bg-blue-950 border-2 border-blue-800 rounded-lg p-4 mb-4">
                 <p className="text-sm font-medium text-blue-300">
-                  📌 Development Mode - OTP: <span className="font-bold text-lg">{displayOtp}</span>
+                  <Pin className="w-3 h-3 inline mr-1" /> Development Mode - OTP: <span className="font-bold text-lg">{displayOtp}</span>
                 </p>
               </div>
             )}

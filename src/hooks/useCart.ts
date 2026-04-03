@@ -14,29 +14,11 @@ export function useAddToCart() {
       });
       return response.data;
     },
-    onSuccess: (data, item) => {
+    onSuccess: (_, item) => {
       addItem(item);
     },
     onError: () => {
       toast.error('Failed to add item to cart');
-    },
-  });
-}
-
-export function useRemoveFromCart() {
-  const { removeItem } = useCartStore();
-
-  return useMutation({
-    mutationFn: async (productId: string) => {
-      await apiClient.delete('/cart/items', {
-        data: { productId },
-      });
-    },
-    onSuccess: (_, productId) => {
-      removeItem(productId);
-    },
-    onError: () => {
-      toast.error('Failed to remove item from cart');
     },
   });
 }

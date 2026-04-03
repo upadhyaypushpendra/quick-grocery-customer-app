@@ -1,14 +1,13 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '../stores/authStore';
 import apiClient from '../lib/apiClient';
+import { subscribeToPush, unsubscribeFromPush } from '../lib/pushNotifications';
 
 interface LoginRequest {
   identifier: string;
 }
 
 interface RegisterRequest {
-  firstName: string;
-  lastName: string;
   identifier: string;
   role: 'user';
 }
@@ -102,6 +101,10 @@ export function useVerifyOtp() {
       setAuth(data.user, data.accessToken);
       setError(null); // Explicitly clear error on success
       apiClient.defaults.headers.common['Authorization'] = `Bearer ${data.accessToken}`;
+      // Ask for push permission if not already granted
+      if (Notification.permission !== 'granted') {
+        subscribeToPush().catch(() => undefined);
+      }
     },
     onError: (error: any) => {
       const message = error?.response?.data?.message || 'OTP verification failed';
@@ -118,6 +121,7 @@ export function useLogout() {
 
   return useMutation({
     mutationFn: async () => {
+      await unsubscribeFromPush().catch(() => undefined);
       await apiClient.post('/auth/logout');
     },
     onSuccess: () => {
@@ -145,8 +149,24 @@ export function useMe() {
 }
 
 /**
- * Resend OTP
+ * Update profile (firstName, lastName)
  */
+export function useUpdateProfile() {
+  const { user, setAuth } = useAuthStore();
+  const accessToken = useAuthStore((s) => s.accessToken);
+
+  return useMutation({
+    mutationFn: async (data: { firstName: string; lastName: string }) => {
+      const response = await apiClient.patch('/users/profile', data);
+      return response.data;
+    },
+    onSuccess: (updatedUser) => {
+      if (user && accessToken) {
+        setAuth({ ...user, ...updatedUser }, accessToken);
+      }
+    },
+  });
+}
 export function useResendOtp() {
   const { setError } = useAuthStore();
 
