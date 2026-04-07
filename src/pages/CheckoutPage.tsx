@@ -1,11 +1,11 @@
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import apiClient from '../lib/apiClient';
 import { useCreateOrder } from '../hooks/useOrders';
 import { useCartStore } from '../stores/cartStore';
 import toast from 'react-hot-toast';
-import { Phone, CreditCard } from 'lucide-react';
+import { Phone, CreditCard, CheckCircle, Plus } from 'lucide-react';
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
@@ -27,8 +27,9 @@ export default function CheckoutPage() {
       clearCart();
       toast.success('Order created successfully!');
       navigate(`/orders/${order.id}`);
-    } catch (err) {
-      toast.error('Failed to place order');
+    } catch (err: any) {
+      const message = err?.response?.data?.message || 'Failed to place order';
+      toast.error(message);
     }
   };
 
@@ -40,6 +41,18 @@ export default function CheckoutPage() {
     handleCheckout(selectedAddressId);
   };
 
+  const handleAddressSelect = useCallback((addressId: string) => {
+    setSelectedAddressId(addressId);
+  }, [setSelectedAddressId]);
+
+  useEffect(() => {
+    if (addresses && addresses.length > 0 && !selectedAddressId) {
+      const defaultAddress = addresses.find((addr: any) => addr.isDefault) || addresses[0];
+
+      handleAddressSelect(defaultAddress.id);
+    }
+  }, [addresses, selectedAddressId, handleAddressSelect]);
+
   if (items.length === 0) {
     return <div className="text-center py-12 text-brand-600 text-lg">Cart is empty</div>;
   }
@@ -49,25 +62,42 @@ export default function CheckoutPage() {
       <div className="lg:col-span-2">
         <h1 className="text-3xl font-bold mb-6 text-brand-700">Checkout</h1>
 
-        <div className="bg-brand-50 border-2 border-brand-200 rounded-lg p-6 mb-6">
+        <div className="bg-brand-50 border-2 border-brand-200 rounded-lg p-4 mb-6">
           <h2 className="text-xl font-bold mb-4 text-brand-700">Delivery Address</h2>
           {addresses && addresses.length > 0 ? (
             <div className="space-y-3">
               {addresses.map((addr: any) => (
                 <button
                   key={addr.id}
-                  onClick={() => setSelectedAddressId(addr.id)}
-                  className={`w-full text-left p-4 border-2 rounded-lg transition ${
-                    selectedAddressId === addr.id
+                  onClick={() => handleAddressSelect(addr.id)}
+                  className={`w-full text-left p-4 border-2 rounded-lg transition ${selectedAddressId === addr.id
                       ? 'bg-brand-100 border-brand-500'
                       : 'border-brand-300 hover:bg-brand-100 hover:border-brand-500'
-                  } text-brand-700`}
+                    } text-brand-700`}
                 >
-                  <p className="font-bold text-brand-800">{addr.label}</p>
-                  <p className="text-sm text-brand-600">{addr.line1}, {addr.city} {addr.postcode}</p>
-                  {addr.phone && <p className="text-sm text-brand-600 flex items-center gap-1"><Phone className="w-3 h-3" /> {addr.phone}</p>}
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="font-bold text-brand-800">{addr.label}</p>
+                      <p className="text-sm text-brand-600">{addr.line1}, {addr.city} {addr.postcode}</p>
+                      {addr.phone && (
+                        <p className="text-sm text-brand-600 flex items-center gap-1">
+                          <Phone className="w-3 h-3" /> {addr.phone}
+                        </p>
+                      )}
+                    </div>
+                    {selectedAddressId === addr.id && (
+                      <CheckCircle className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
+                    )}
+                  </div>
                 </button>
               ))}
+              <button
+                onClick={() => navigate('/addresses/new')}
+                className="w-full text-left p-4 border-2 border-dashed border-brand-300 rounded-lg hover:border-brand-500 hover:bg-brand-50 transition text-brand-600 flex items-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                <span className="font-medium">Add New Address</span>
+              </button>
             </div>
           ) : (
             <div className="text-center py-6">
@@ -83,7 +113,7 @@ export default function CheckoutPage() {
         </div>
       </div>
 
-      <div className="bg-brand-50 rounded-lg p-6 h-fit border-2 border-brand-200">
+      <div className="bg-brand-50 rounded-lg p-4 h-fit border-2 border-brand-200">
         <h2 className="text-lg font-bold mb-4 text-brand-700">Order Summary</h2>
         <div className="space-y-2 text-sm mb-6 text-brand-700">
           {items.map((item) => (

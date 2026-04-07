@@ -1,9 +1,8 @@
-import toast from 'react-hot-toast';
 import { Link } from 'react-router-dom';
 import OrderStatusBadge from '../components/OrderStatusBadge';
 import ProductCard from '../components/ProductCard';
 import SearchBar from '../components/SearchBar';
-import { useAddToCart } from '../hooks/useCart';
+import { CategoryGridSkeleton, ProductGridSkeleton } from '../components/Skeletons';
 import { useOrders } from '../hooks/useOrders';
 import { useCategories, useMyFrequentProducts, useTopProducts } from '../hooks/useProducts';
 import { useAuthStore } from '../stores/authStore';
@@ -14,7 +13,6 @@ export default function HomePage() {
   const { data: topProducts, isLoading: topLoading } = useTopProducts();
   const { data: myFrequent, isLoading: myFrequentLoading } = useMyFrequentProducts();
   const { data: orders } = useOrders();
-  const addToCart = useAddToCart();
 
   // Find all in-progress orders (not completed)
   const inProgressOrders = orders?.filter((order: any) => !order.completed).map((order: any) => ({
@@ -22,17 +20,6 @@ export default function HomePage() {
     status: order.status,
     createdAt: order.createdAt,
   })) || [];
-
-  const handleAddToCart = (product: any) => {
-    addToCart.mutate({
-      productId: product.slug,
-      name: product.name,
-      price: product.price,
-      imageUrl: product.imageUrl,
-      unit: product.unit,
-    });
-    toast.success('Added to cart!');
-  };
 
   const recommendations = user && myFrequent ? myFrequent : topProducts;
   const recommendationsLoading = user ? myFrequentLoading : topLoading;
@@ -48,7 +35,7 @@ export default function HomePage() {
           {user && myFrequent ? 'Your frequent purchases' : 'Popular products'}
         </h2>
         {recommendationsLoading ? (
-          <div className="text-brand-600">Loading recommendations...</div>
+          <ProductGridSkeleton count={6} cols={3} small />
         ) : recommendations?.length === 0 ? (
           <p className="text-brand-600">No recommendations available</p>
         ) : (
@@ -57,8 +44,6 @@ export default function HomePage() {
               <ProductCard
                 key={product._id}
                 product={product}
-                onAddToCart={handleAddToCart}
-                isAddingToCart={addToCart.isPending}
                 small
               />
             ))}
@@ -68,7 +53,7 @@ export default function HomePage() {
 
       {/* Categories Section */}
       {categoriesLoading ? (
-        <div>Loading categories...</div>
+        <CategoryGridSkeleton count={6} />
       ) : (
         <div>
           <h2 className="text-xl font-bold mb-4 text-brand-700">Shop by Category</h2>

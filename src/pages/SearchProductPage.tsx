@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
-import toast from 'react-hot-toast';
 import ProductCard from '../components/ProductCard';
+import { ProductGridSkeleton } from '../components/Skeletons';
 import { Search } from 'lucide-react';
-import { useAddToCart } from '../hooks/useCart';
 import { useMyFrequentProducts, useProducts, useTopProducts } from '../hooks/useProducts';
 import { useProductSuggestions } from '../hooks/useProductSuggestions';
 import { useAuthStore } from '../stores/authStore';
@@ -33,7 +32,6 @@ export default function SearchProductPage() {
   const { data: suggestions, isLoading: suggestionsLoading } = useProductSuggestions(inputValue.trim(), 8);
   const { data: topProducts, isLoading: topLoading } = useTopProducts();
   const { data: myFrequent, isLoading: myFrequentLoading } = useMyFrequentProducts();
-  const addToCart = useAddToCart();
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value);
@@ -48,17 +46,6 @@ export default function SearchProductPage() {
   const handleRecentSearchClick = (search: string) => {
     setInputValue(search);
     setSearchQuery(search);
-  };
-
-  const handleAddToCart = (product: any) => {
-    addToCart.mutate({
-      productId: product.slug,
-      name: product.name,
-      price: product.price,
-      imageUrl: product.imageUrl,
-      unit: product.unit,
-    });
-    toast.success('Added to cart!');
   };
 
   const isSearching = searchQuery.length > 0;
@@ -124,7 +111,7 @@ export default function SearchProductPage() {
                 {user && myFrequent ? 'Your frequent purchases' : 'Popular products'}
               </h2>
               {recommendationsLoading ? (
-                <div className="text-brand-600">Loading recommendations...</div>
+                <ProductGridSkeleton count={6} cols={2} />
               ) : displayRecommendations?.length === 0 ? (
                 <p className="text-brand-600">No recommendations available</p>
               ) : (
@@ -133,8 +120,6 @@ export default function SearchProductPage() {
                     <ProductCard
                       key={product._id}
                       product={product}
-                      onAddToCart={handleAddToCart}
-                      isAddingToCart={addToCart.isPending}
                     />
                   ))}
                 </div>
@@ -178,7 +163,7 @@ export default function SearchProductPage() {
               </h2>
 
               {searchLoading ? (
-                <div className="text-brand-600">Loading results...</div>
+                <ProductGridSkeleton count={6} cols={2} />
               ) : searchResults?.data?.length === 0 ? (
                 <div className="text-center py-12">
                   <p className="text-brand-600 text-lg">No products found</p>
