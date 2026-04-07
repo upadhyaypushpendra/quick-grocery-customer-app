@@ -132,7 +132,7 @@ export default function SearchProductPage() {
         {isSearching && (
           <>
             {/* Suggestions Section */}
-            {!suggestionsLoading && suggestions?.length &&  suggestions?.length > 0 && (
+            {!suggestionsLoading && suggestions?.length && suggestions?.length > 0 && (
               <div className="mb-8">
                 <h3 className="text-sm font-bold text-brand-600 mb-3 uppercase">Suggestions</h3>
                 <div className="space-y-2">
@@ -189,8 +189,6 @@ export default function SearchProductPage() {
                       <ProductCard
                         key={product._id}
                         product={product}
-                        onAddToCart={handleAddToCart}
-                        isAddingToCart={addToCart.isPending}
                       />
                     ))}
                   </div>
